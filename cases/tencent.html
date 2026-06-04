@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tencent GameLoop — Penghua Zhou</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#ffffff;--surface:#f5f5f5;--border:#e0e0e0;--text:#000;--text-2:#616161;--text-3:#8f8f8f;--accent:#1583D6;--font:'Inter',sans-serif}
+    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.6}a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+    .nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(255,255,255,0.9);border-bottom:1px solid var(--border)}
+    .nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-0.04em;font-size:clamp(20px,2.2vw,24px);color:var(--text);transition:opacity .2s}
+    .nav-brand:hover{opacity:.7}
+    .nav-brand .mark{width:28px;height:28px;display:block;flex-shrink:0}
+    .nav-links{display:flex;gap:32px;font-size:14px;color:var(--text-2);font-weight:400}
+    .nav-links a{transition:color .2s}
+    .nav-links a:hover{color:#5E8A1F}
+    .nav-links a.is-active{color:#5E8A1F;font-weight:600}
+    .nav-back{font-size:13px;font-weight:600;color:var(--text);border:1px solid var(--border);padding:8px 20px;transition:background .2s,color .2s}
+    .nav-back:hover{background:var(--text);color:#fff}
+    .nav-toggle{display:none;background:transparent;border:0;padding:8px;margin-left:8px;color:var(--text);cursor:pointer;line-height:0}
+    .nav-toggle:hover{color:#5E8A1F}
+    .nav-toggle svg{display:block}
+    @media(max-width:1100px){.nav-links{gap:22px;font-size:13px}.nav{padding:0 28px}}
+    @media(max-width:900px){
+      .nav{padding:0 20px}
+      .nav-toggle{display:flex;align-items:center;justify-content:center}
+      .nav-links{position:absolute;top:60px;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;padding:8px 0;background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);box-shadow:0 12px 28px rgba(0,0,0,0.06);transform:translateY(-8px);opacity:0;pointer-events:none;transition:transform .22s cubic-bezier(0.4,0,0.2,1),opacity .18s ease}
+      .nav.is-open .nav-links{transform:translateY(0);opacity:1;pointer-events:auto}
+      .nav-links a{padding:14px 20px;font-size:15px;border-bottom:1px solid var(--border)}
+      .nav-links a:last-child{border-bottom:0}
+    }
+    .section{scroll-margin-top:80px}
+    .hero{position:relative;background:var(--bg);color:var(--text);min-height:68vh;overflow:hidden;isolation:isolate}
+    .hero-eyebrow{position:absolute;left:clamp(20px,5vw,72px);top:104px;z-index:3;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:var(--accent);line-height:1.7}
+    .hero-eyebrow span{display:block;color:var(--text-3);font-weight:500;letter-spacing:0.1em;margin-top:4px}
+    .hero-content{position:absolute;right:clamp(20px,5vw,72px);top:56%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:flex-end;z-index:3;pointer-events:none;max-width:92vw}
+    .hero-word{font-size:clamp(2.6rem,11vw,8rem);font-weight:700;letter-spacing:-0.04em;line-height:0.86;color:var(--text);text-transform:uppercase;margin:0}
+    .hero-tagline{margin-top:18px;max-width:380px;font-size:clamp(14px,1.5vw,17px);font-weight:600;letter-spacing:-0.01em;color:var(--text);text-align:right}
+    .hero-blurb{margin-top:12px;max-width:340px;font-size:13.5px;line-height:1.6;color:var(--text-2);text-align:right}
+    .hero-cta-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:16px;margin-top:26px;pointer-events:auto}
+    .hero-cta{display:inline-flex;align-items:center;gap:9px;padding:13px 24px;background:var(--text);color:#fff;border-radius:999px;font-size:14px;font-weight:600;letter-spacing:-0.005em;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 10px 30px rgba(0,0,0,0.16)}
+    .hero-cta:hover{transform:translateY(-1px);box-shadow:0 14px 38px rgba(0,0,0,0.22)}
+    .hero-cta svg{width:14px;height:14px}
+    .hero-trail-img{position:absolute;width:clamp(110px,11vw,160px);aspect-ratio:4/3;object-fit:cover;border-radius:10px;transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;z-index:1;will-change:transform,opacity;box-shadow:0 14px 40px rgba(20,40,90,0.22)}
+    .project-meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px 48px;padding:0 0 44px;border-bottom:1px solid var(--border);margin:40px auto 4px}
+    .project-meta-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3);margin-bottom:6px}
+    .project-meta-value{font-size:14px;color:var(--text);line-height:1.5}
+    .content{max-width:1120px;margin:0 auto;padding:0 40px}.section{padding:64px 0}.section+.section{border-top:1px solid var(--border)}.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}.section-label::before{content:'';width:20px;height:1.5px;background:var(--accent)}.section-heading{font-size:clamp(1.5rem,3vw,2rem);font-weight:600;letter-spacing:-0.03em;margin-bottom:24px;line-height:1.2}
+    p{margin-bottom:20px;color:var(--text-2);line-height:1.75}p strong{color:var(--text);font-weight:600}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:44px 0}.stat-card{padding:4px 18px;border-left:1px solid var(--border)}.stat-card:first-child{border-left:none;padding-left:0}.stat-num{font-size:clamp(1.5rem,2.5vw,1.75rem);font-weight:700;letter-spacing:-0.035em;line-height:1.05;margin-bottom:8px;color:var(--text)}.stat-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em;line-height:1.4}
+    .approach-split{display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr);gap:clamp(28px,4.5vw,64px);margin:36px 0 8px;align-items:start}
+    .approach-topics{position:sticky;top:92px}
+    .approach-lead{font-size:15px;line-height:1.7;color:var(--text-2);margin:0 0 28px}
+    .approach-lead strong{color:var(--text);font-weight:600}
+    .topic{display:grid;grid-template-columns:118px 1fr;gap:6px 20px;padding:18px 0;border-top:1px solid var(--border)}
+    .topic:first-child{border-top:none;padding-top:0}
+    .topic-name{font-size:14px;font-weight:600;color:var(--text);letter-spacing:-0.01em;line-height:1.45}
+    .topic-desc{font-size:13.5px;color:var(--text-2);line-height:1.6}
+    .approach-posts-head{display:flex;align-items:baseline;gap:10px;margin-bottom:22px;font-size:clamp(1.15rem,1.8vw,1.4rem);font-weight:600;letter-spacing:-0.03em;color:var(--text)}
+    .approach-posts-head .count{font-size:0.72em;color:var(--text-3);font-weight:500}
+    .post{margin-bottom:30px}
+    .post:last-child{margin-bottom:0}
+    .post-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg);box-shadow:0 1px 3px rgba(20,40,80,0.06)}
+    .post-card img{display:block;width:100%;height:auto}
+    .post-name{margin-top:14px;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:var(--text)}
+    .post-meta{margin-top:3px;font-size:12.5px;color:var(--text-3);letter-spacing:0.01em}
+    @media(max-width:860px){.approach-split{grid-template-columns:1fr;gap:36px}.approach-topics{position:static}}
+    @media(max-width:560px){.topic{grid-template-columns:1fr;gap:3px;padding:16px 0}}
+    .img-placeholder{width:100%;aspect-ratio:16/10;background:var(--surface);border:1px solid var(--border);margin:40px 0;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text-3)}.img-placeholder-wide{max-width:960px;margin-left:auto;margin-right:auto;padding:0 40px}.img-placeholder-wide .img-placeholder{margin:0}
+    ul{margin:16px 0 24px 20px;color:var(--text-2)}li{margin-bottom:10px;line-height:1.6}
+    .case-nav-bar{display:flex;justify-content:space-between;align-items:center;max-width:1120px;margin:0 auto;padding:48px 40px;border-top:1px solid var(--border)}.case-nav-link{display:flex;flex-direction:column;gap:4px;text-decoration:none;transition:color 0.2s}.case-nav-link:hover .case-nav-name{color:var(--accent)}.case-nav-link--next{text-align:right;margin-left:auto}.case-nav-dir{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3)}.case-nav-name{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.02em;transition:color 0.2s}
+    .footer{border-top:1px solid var(--border);padding:32px 40px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;font-weight:500}
+    @media(max-width:600px){.footer{flex-direction:column;gap:12px;text-align:center}}
+    @media(max-width:1024px){.hero{min-height:auto;padding:112px 0 4px}.hero-eyebrow{position:static;left:auto;top:auto;padding:0 clamp(20px,5vw,72px);margin-bottom:clamp(28px,6vw,52px)}.hero-content{position:static;transform:none;align-items:flex-start;max-width:100%;padding:0 clamp(20px,5vw,72px)}.hero-tagline,.hero-blurb{text-align:left}.hero-word{font-size:clamp(2.6rem,13vw,5.5rem)}}
+    @media(max-width:768px){nav{padding:0 20px}.content{padding-left:20px;padding-right:20px}.hero-word{font-size:clamp(2.4rem,12vw,3.6rem)}.hero-tagline,.hero-blurb{max-width:100%}.project-meta-grid{grid-template-columns:repeat(2,1fr);gap:22px 24px}.stats{grid-template-columns:1fr}.stat-card{border-left:none;border-top:1px solid var(--border);padding:18px 0}.stat-card:first-child{border-top:none;padding-top:0}}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="nav-brand" href="../index.html">
+      <svg class="mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="Penghua Zhou logo" role="img">
+        <rect x="0" y="0" width="32" height="32" rx="6.4" ry="6.4" fill="#0A0A0A"/>
+        <circle cx="8" cy="7" r="1.6" fill="#B6F23A"/>
+        <circle cx="24" cy="25" r="1.6" fill="#B6F23A"/>
+        <path d="M10 12 H22 L10 20 H22"
+              stroke="#B6F23A" stroke-width="3.2"
+              fill="none"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Penghua Zhou
+    </a>
+    <div class="nav-links" id="navMenu">
+      <a href="#overview">Overview</a>
+      <a href="#challenge">Challenge</a>
+      <a href="#approach">Approach</a>
+      <a href="#results">Results</a>
+      <a href="#reflection">Reflection</a>
+    </div>
+    <a class="nav-back" href="../resume.pdf" target="_blank">Resume</a>
+    <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navMenu">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </nav>
+
+  <header class="hero" id="hero">
+    <div class="hero-eyebrow">Tencent GameLoop<span>Content Operations · Community Growth · 2019</span></div>
+    <div class="hero-content">
+      <h1 class="hero-word">GameLoop</h1>
+      <p class="hero-tagline">Content operations &amp; community growth for GameLoop's <strong>Southeast Asia</strong> audience.</p>
+      <p class="hero-blurb">I grew the fan page from <strong>2,300 to 10,000+ followers in two months</strong> — turning a broadcast page into a two-way community through recurring interactive series, UGC, and always-on community management.</p>
+      <div class="hero-cta-row">
+        <a class="hero-cta" href="https://www.facebook.com/GameLoopOfficial" target="_blank" rel="noopener">
+          Visit Facebook page
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="project-meta-grid">
+      <div><div class="project-meta-label">Role</div><div class="project-meta-value">Content Operations · Community Growth</div></div>
+      <div><div class="project-meta-label">Company</div><div class="project-meta-value">Tencent — GameLoop (Android emulator)</div></div>
+      <div><div class="project-meta-label">Timeline</div><div class="project-meta-value">2019</div></div>
+      <div><div class="project-meta-label">Market</div><div class="project-meta-value">Southeast Asia</div></div>
+      <div><div class="project-meta-label">Channel</div><div class="project-meta-value">Facebook — official page</div></div>
+      <div><div class="project-meta-label">Focus</div><div class="project-meta-value">Engagement · Community · Launch demand</div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <section class="section" id="overview">
+      <p class="section-label">Overview</p>
+      <h2 class="section-heading">Turning a broadcast page into a community</h2>
+      <p>GameLoop is Tencent's official Android emulator for playing mobile games on PC. I ran content operations and community growth for the <strong>Southeast Asia audience</strong> on GameLoop's official Facebook channel, owning the content calendar, the creative, and day-to-day community management.</p>
+    </section>
+
+    <section class="section" id="challenge">
+      <p class="section-label">The Challenge</p>
+      <h2 class="section-heading">Followers, but not a community</h2>
+      <p>A large official page was mostly broadcasting product updates to a passive audience. For Southeast Asia — the heartland of PUBG Mobile and a key market for <strong>every new title arriving on the platform</strong> — that wasn't enough.</p>
+      <p>The job was twofold: convert passive followers into an active community that comments, shares, and creates — and build launch-day demand for new titles arriving on the platform.</p>
+    </section>
+
+    <section class="section" id="approach">
+      <p class="section-label">Approach</p>
+      <h2 class="section-heading">A content engine built for two-way engagement</h2>
+      <div class="approach-split">
+        <div class="approach-topics">
+          <p class="approach-lead">I rebuilt the content mix around <strong>participation, not announcements</strong>. Multi-week launch campaigns for new SEA titles, localized memes, and always-on community management ran underneath — but four recurring formats did the heavy lifting on engagement:</p>
+          <div class="topic">
+            <div class="topic-name">Interactive series</div>
+            <div class="topic-desc">Appointment-style formats engineered to pull comments — a bi-weekly Saturday Q&amp;A and "Reading Comments" videos answered on camera.</div>
+          </div>
+          <div class="topic">
+            <div class="topic-name">Community games</div>
+            <div class="topic-desc">Low-lift, high-participation prompts like Master Detector that turned passive scrolling into a guess-the-answer game.</div>
+          </div>
+          <div class="topic">
+            <div class="topic-name">User-generated content</div>
+            <div class="topic-desc">Player gameplay clips, sourced and spotlighted — turning the audience into creators with a reason to keep posting.</div>
+          </div>
+          <div class="topic">
+            <div class="topic-name">Game content</div>
+            <div class="topic-desc">Title news, mode spotlights, and game highlights tuned to what the SEA community actually played.</div>
+          </div>
+        </div>
+        <div class="approach-posts">
+          <div class="approach-posts-head">Sample posts <span class="count">4</span></div>
+          <article class="post">
+            <div class="post-card"><img src="../assets/tencent/qa.png" alt="GameLoop 'Saturday's Q&amp;A' post, Aug 31 2019 — 33 reactions, 45 comments" loading="lazy" /></div>
+            <div class="post-name">Saturday's Q&amp;A</div>
+            <div class="post-meta">Interactive series · 33 reactions · 45 comments</div>
+          </article>
+          <article class="post">
+            <div class="post-card"><img src="../assets/tencent/master-detector.png" alt="GameLoop 'Master Detector' game post, Aug 23 2019 — 26 reactions, 18 comments" loading="lazy" /></div>
+            <div class="post-name">Master Detector</div>
+            <div class="post-meta">Community game · 26 reactions · 18 comments</div>
+          </article>
+          <article class="post">
+            <div class="post-card"><img src="../assets/tencent/pubg-clip.png" alt="GameLoop PUBG sniper-clip post, Aug 27 2019 — 48 reactions, 13 comments" loading="lazy" /></div>
+            <div class="post-name">PUBG sniper clip</div>
+            <div class="post-meta">User-generated content · 48 reactions · 13 comments</div>
+          </article>
+          <article class="post">
+            <div class="post-card"><img src="../assets/tencent/zombie-mode.png" alt="GameLoop PUBG Zombie Mode post, Aug 23 2019 — 60 reactions, 19 comments" loading="lazy" /></div>
+            <div class="post-name">PUBG Zombie Mode</div>
+            <div class="post-meta">Game content · 60 reactions · 19 comments</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="results">
+      <p class="section-label">Results</p>
+      <h2 class="section-heading">Engagement that signals a real community</h2>
+      <div class="stats">
+        <div class="stat-card"><div class="stat-num">2.3K → 10K+</div><div class="stat-label">Fan page followers</div></div>
+        <div class="stat-card"><div class="stat-num">+300–500%</div><div class="stat-label">More comments vs. standard posts</div></div>
+        <div class="stat-card"><div class="stat-num">Bi-weekly</div><div class="stat-label">Recurring community series</div></div>
+      </div>
+      <p>The strategy compounded into real audience growth — the fan page climbed from roughly <strong>2,300 to 10,000+ followers in two months</strong> — and, just as important, into participation. The shift to two-way formats showed up where it matters most: in the <strong>comments</strong>. Interactive formats — the bi-weekly Q&A, the "Master Detector" game, and "Reading Comments" videos — drove roughly <strong>4–6× the comments of standard product announcements, a 300–500% lift</strong>.</p>
+      <p>Launch campaigns sustained that elevated engagement through each countdown, and relatable, localized memes punched above their weight — regularly out-commenting polished brand creative. Replying to players in the comments, post after post, turned one-off engagement into ongoing relationships.</p>
+    </section>
+
+    <section class="section" id="reflection">
+      <p class="section-label">Reflection</p>
+      <h2 class="section-heading">What I learned</h2>
+      <p>Operating GameLoop's community taught me to treat <strong>content as a growth lever, not a megaphone</strong>. The posts that worked weren't the most polished — they were the most relatable and the most participatory. A meme or a "comment your answer" prompt consistently out-engaged a glossy announcement, because it invited people in. Understanding local gaming culture and designing for two-way conversation mattered more than any marketing framework.</p>
+    </section>
+  </div>
+
+  <div class="case-nav-bar">
+    <a href="kidco-growth.html" class="case-nav-link case-nav-link--prev"><span class="case-nav-dir">← Previous</span><span class="case-nav-name">The KID Growth Architecture</span></a>
+  </div>
+  <div class="footer">
+    <div>© 2026 · Tencent GameLoop Case Study</div>
+    <div>Penghua Zhou · Growth Marketing</div>
+  </div>
+  <script>
+    /* ── Mobile nav drawer ── */
+    (function(){
+      const nav = document.querySelector('.nav');
+      const toggle = nav && nav.querySelector('.nav-toggle');
+      if(!nav || !toggle) return;
+      function setOpen(open){
+        nav.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+      }
+      toggle.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
+      nav.querySelectorAll('.nav-links a').forEach(a => {
+        a.addEventListener('click', () => setOpen(false));
+      });
+      window.addEventListener('resize', () => {
+        if(window.innerWidth > 900) setOpen(false);
+      });
+    })();
+
+    /* ── Nav scroll-spy ── */
+    (function(){
+      const links = Array.from(document.querySelectorAll('.nav-links a[href^="#"]'));
+      if (!links.length) return;
+      const pairs = links
+        .map(a => ({ link:a, section:document.getElementById(a.getAttribute('href').slice(1)) }))
+        .filter(p => p.section);
+      if (!pairs.length) return;
+
+      const NAV_OFFSET = 100;
+      function update(){
+        let bestId = null;
+        let bestTop = -Infinity;
+        for (const { section } of pairs){
+          const top = section.getBoundingClientRect().top - NAV_OFFSET;
+          if (top <= 0 && top > bestTop){
+            bestTop = top;
+            bestId = section.id;
+          }
+        }
+        for (const p of pairs){
+          p.link.classList.toggle('is-active', p.section.id === bestId);
+        }
+      }
+
+      let raf = 0;
+      function onScroll(){
+        if (raf) return;
+        raf = requestAnimationFrame(() => { update(); raf = 0; });
+      }
+      window.addEventListener('scroll', onScroll, { passive:true });
+      window.addEventListener('resize', onScroll);
+      update();
+    })();
+
+    /* ── Hero: cursor image trail — real GameLoop posts follow the mouse ── */
+    (function(){
+      const hero = document.getElementById('hero');
+      if (!hero) return;
+      if (!window.matchMedia || !window.matchMedia('(hover:hover)').matches) return;
+      const SRCS = ['../assets/tencent/qa.png','../assets/tencent/master-detector.png','../assets/tencent/pubg-clip.png','../assets/tencent/zombie-mode.png'];
+      SRCS.forEach(s => { const i = new Image(); i.src = s; });
+      const STEP = 92, MAX = 8;
+      let idx = 0, lastX = null, lastY = null;
+      hero.addEventListener('mousemove', e => {
+        const r = hero.getBoundingClientRect();
+        const x = e.clientX - r.left, y = e.clientY - r.top;
+        if (lastX === null){ lastX = x; lastY = y; return; }
+        const dx = x - lastX, dy = y - lastY;
+        if (dx*dx + dy*dy < STEP*STEP) return;
+        lastX = x; lastY = y; spawn(x, y);
+      }, { passive: true });
+      function spawn(x, y){
+        const img = document.createElement('img');
+        img.className = 'hero-trail-img'; img.src = SRCS[idx % SRCS.length]; img.alt = '';
+        const rot = (idx % 2 ? 1 : -1) * (3 + Math.round(Math.random() * 6)); idx++;
+        img.style.left = x + 'px'; img.style.top = y + 'px';
+        hero.appendChild(img);
+        requestAnimationFrame(() => {
+          img.style.transition = 'transform .55s cubic-bezier(.16,1,.3,1), opacity .5s ease';
+          img.style.opacity = '1';
+          img.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(1)`;
+        });
+        setTimeout(() => { img.style.opacity = '0'; img.style.transform = `translate(-50%,-50%) rotate(${rot}deg) scale(1.04) translateY(10px)`; }, 520);
+        setTimeout(() => img.remove(), 1100);
+        const live = hero.querySelectorAll('.hero-trail-img');
+        if (live.length > MAX) live[0].remove();
+      }
+    })();
+  </script>
+</body>
+</html>

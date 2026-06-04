@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR Mixtory — Penghua Zhou</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#ffffff; --surface:#f5f5f5; --border:#e0e0e0;
+      --text:#000; --text-2:#616161; --text-3:#8f8f8f;
+      --accent:#991B1B; --font:'Inter',sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.6}
+    a{color:inherit;text-decoration:none}
+    img{display:block;max-width:100%}
+
+    /* ── Nav ─────────────────────────────────────────────── */
+    .nav{
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      height:60px; padding:0 40px;
+      display:flex; align-items:center; justify-content:space-between;
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      background:rgba(255,255,255,0.9);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-0.04em; font-size:clamp(20px,2.2vw,24px); color:var(--text); transition:opacity .2s}
+    .nav-brand:hover{opacity:.7}
+    .nav-brand .mark{
+      width:28px; height:28px;
+      display:block; flex-shrink:0;
+    }
+    .nav-links{display:flex; gap:32px; font-size:14px; color:var(--text-2); font-weight:400}
+    .nav-links a{transition:color .2s}
+    .nav-links a:hover{color:#5E8A1F}
+    .nav-links a.is-active{color:#5E8A1F; font-weight:600}
+    .nav-back{
+      font-size:13px; font-weight:600; color:var(--text); border:1px solid var(--border);
+      padding:8px 20px; transition:background .2s,color .2s;
+    }
+    .nav-back:hover{background:var(--text); color:#fff}
+    .nav-toggle{
+      display:none; background:transparent; border:0; padding:8px; margin-left:8px;
+      color:var(--text); cursor:pointer; line-height:0;
+    }
+    .nav-toggle:hover{ color:#5E8A1F; }
+    .nav-toggle svg{ display:block; }
+    @media(max-width:1100px){
+      .nav-links{ gap:22px; font-size:13px; }
+      .nav{ padding:0 28px; }
+    }
+    @media(max-width:900px){
+      .nav{ padding:0 20px; }
+      .nav-toggle{ display:flex; align-items:center; justify-content:center; }
+      .nav-links{
+        position:absolute; top:60px; left:0; right:0;
+        flex-direction:column; align-items:stretch;
+        gap:0; padding:8px 0;
+        background:rgba(255,255,255,0.96);
+        backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+        border-bottom:1px solid var(--border);
+        box-shadow:0 12px 28px rgba(0,0,0,0.06);
+        transform:translateY(-8px); opacity:0; pointer-events:none;
+        transition:transform .22s cubic-bezier(0.4,0,0.2,1), opacity .18s ease;
+      }
+      .nav.is-open .nav-links{
+        transform:translateY(0); opacity:1; pointer-events:auto;
+      }
+      .nav-links a{
+        padding:14px 20px; font-size:15px;
+        border-bottom:1px solid var(--border);
+      }
+      .nav-links a:last-child{ border-bottom:0; }
+    }
+
+    /* Hero */
+    .hero{padding:140px 0 0;max-width:1200px;margin:0 auto;padding-left:40px;padding-right:40px}
+    .hero-tags{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+    .hero-tag{font-size:11px;font-weight:600;padding:4px 12px;background:var(--text);color:#fff;text-transform:uppercase;letter-spacing:0.04em}
+    .hero-title{font-size:clamp(2.5rem,5.5vw,3.5rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05;margin-bottom:24px}
+    .hero-subtitle{font-size:16px;font-weight:400;color:var(--text-2);max-width:960px;line-height:1.65;margin-bottom:0}
+    .hero-role{font-size:14px;font-weight:400;color:var(--text-3);max-width:960px;line-height:1.7;margin-top:16px;margin-bottom:0}
+    .hero-role strong{color:var(--text);font-weight:600}
+
+    /* Hero Image */
+    .hero-image{max-width:1060px;margin:96px auto;padding:0 40px}
+    .hero-image-inner{width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:-0.02em;position:relative;overflow:hidden}
+    .hero-image-inner::after{content:'History. Mixed Reality. Story.';position:absolute;bottom:24px;left:24px;font-size:14px;font-weight:400;color:rgba(255,255,255,0.3);letter-spacing:0.04em}
+
+    /* Shell */
+    .wrap{max-width:1200px;margin:0 auto;padding:0 40px}
+    .era-showcase{scroll-margin-top:120px}
+
+    /* Section head — numbered label stacked above a large heading */
+    .sec{padding:96px 0; scroll-margin-top:120px; max-width:800px; margin-left:auto; margin-right:auto}
+    .sec-head{display:grid;grid-template-columns:1fr;gap:18px;align-items:start;margin-bottom:56px}
+    .sec-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:var(--text-3)}
+    .sec-head h2{font-size:clamp(1.5rem,2.6vw,2rem);font-weight:700;letter-spacing:-0.03em;line-height:1.15;margin:0;color:var(--text);text-wrap:balance}
+    .sec-head h2 em{font-style:normal;font-weight:700;color:var(--accent)}
+    @media(max-width:768px){.sec-head{gap:14px;margin-bottom:40px}}
+
+    /* Process — full-width dark band with a horizontal timeline (Languru style) */
+    .process{background:var(--text);color:#fff;padding:96px 0;scroll-margin-top:120px;position:relative;overflow:hidden}
+    .process .wrap{position:relative}
+    .process .sec-head{text-align:center;justify-items:center;margin-bottom:0}
+    .process .sec-num{color:rgba(255,255,255,0.5)}
+    .process h2{color:#fff}
+    .process h2 em{color:#fff}
+    .process-timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:64px;position:relative}
+    .process-timeline::before{content:"";position:absolute;top:17px;left:10%;right:10%;border-top:1px solid rgba(255,255,255,0.2)}
+    .step{padding:0 16px;position:relative;text-align:center}
+    .step .dot{width:36px;height:36px;border-radius:50%;background:#fff;color:var(--text);display:grid;place-items:center;font-weight:700;font-size:12px;margin:0 auto 28px;position:relative;z-index:2;box-shadow:0 0 0 6px var(--text)}
+    .step .phase{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:10px;font-weight:700}
+    .step h4{font-size:18px;font-weight:700;letter-spacing:-0.02em;margin:0 0 10px;line-height:1.25;color:#fff}
+    .step p{font-size:13px;line-height:1.6;color:rgba(255,255,255,0.65);margin:0}
+    .step{opacity:0;transform:translateY(28px);transition:opacity .6s cubic-bezier(0.16,1,0.3,1),transform .6s cubic-bezier(0.16,1,0.3,1)}
+    .step.in-view{opacity:1;transform:none}
+    .step:nth-child(2){transition-delay:.08s}
+    .step:nth-child(3){transition-delay:.16s}
+    .step:nth-child(4){transition-delay:.24s}
+    .step:nth-child(5){transition-delay:.32s}
+    @media(max-width:900px){.process-timeline{grid-template-columns:1fr;gap:32px}.process-timeline::before{display:none}}
+
+    p{margin-bottom:24px;color:var(--text-2);line-height:1.8;font-size:15px}
+    p strong{color:var(--text);font-weight:600}
+
+    /* Project info sidebar */
+    .project-meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;padding:40px 0;border-bottom:1px solid var(--border);margin:40px 0}
+    .project-meta-item{}
+    .project-meta-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-3);margin-bottom:8px}
+    .project-meta-value{font-size:15px;font-weight:500;color:var(--text);line-height:1.5}
+
+    /* Stats grid */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin:40px 0}
+    .stat-card{background:var(--surface);padding:28px 24px}
+    .stat-num{font-size:24px;font-weight:700;letter-spacing:-0.03em;margin-bottom:4px}
+    .stat-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em}
+
+    /* Lists */
+    ul{margin:16px 0 24px 20px;color:var(--text-2)}
+    li{margin-bottom:10px;line-height:1.6}
+    ol{margin:16px 0 24px 20px;color:var(--text-2)}
+    ol li{margin-bottom:16px}
+    ol li strong{color:var(--text)}
+
+    /* Three column */
+    /* Era showcase */
+    .era-showcase{max-width:1100px;margin:96px auto;padding:0 40px}
+    .era-showcase-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:var(--text-3);text-align:center;margin-bottom:36px}
+    .era-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+    .era-card{position:relative;background:#fff;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1),box-shadow 0.5s cubic-bezier(0.16,1,0.3,1)}
+    .era-card:hover{transform:translateY(-8px);box-shadow:0 20px 60px rgba(0,0,0,0.12)}
+    .era-card-header{padding:16px 20px 0;font-size:11px;font-weight:500;color:var(--text-3);letter-spacing:0.04em}
+    .era-card-img{padding:16px 20px 20px}
+    .era-card-img img{width:100%;height:auto;display:block}
+    .era-card-footer{padding:0 20px 20px;display:flex;align-items:center;justify-content:space-between}
+    .era-label{font-size:clamp(24px,3vw,32px);font-weight:700;letter-spacing:-0.04em;color:var(--text)}
+    .era-badge{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-3);padding:4px 10px;border:1px solid var(--border)}
+    /* Stagger reveal */
+    .era-card{opacity:0;transform:translateY(40px);transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1),transform 0.7s cubic-bezier(0.16,1,0.3,1),box-shadow 0.5s ease}
+    .era-card.in-view{opacity:1;transform:translateY(0)}
+    .era-card:nth-child(2){transition-delay:0.1s}
+    .era-card:nth-child(3){transition-delay:0.2s}
+    @media(max-width:768px){.era-grid{grid-template-columns:1fr;gap:16px}.era-showcase{padding:0 20px}}
+
+    /* Lightbox */
+    .lightbox{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.4s ease;cursor:zoom-out;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    .lightbox.open{opacity:1;pointer-events:auto}
+    .lightbox img{max-width:90vw;max-height:85vh;object-fit:contain;transform:scale(0.92);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1)}
+    .lightbox.open img{transform:scale(1)}
+    .lightbox-caption{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);font-size:13px;font-weight:500;color:rgba(255,255,255,0.6);letter-spacing:0.04em}
+    .lightbox-close{position:absolute;top:24px;right:24px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;cursor:pointer;opacity:0.5;transition:opacity 0.2s}
+    .lightbox-close:hover{opacity:1}
+    .lightbox img{cursor:pointer}
+    .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:#fff;font-size:40px;line-height:1;cursor:pointer;opacity:0.45;transition:opacity 0.2s;z-index:2;font-family:var(--font);padding:0}
+    .lightbox-nav:hover{opacity:1}
+    .lightbox-prev{left:24px}
+    .lightbox-next{right:24px}
+    @media(max-width:640px){.lightbox-nav{font-size:32px;width:40px;height:40px}.lightbox-prev{left:6px}.lightbox-next{right:6px}}
+
+    /* Callout */
+    .callout{background:transparent;padding:32px 0 32px 24px;margin:40px 0;border-left:3px solid var(--text)}
+    .callout p{margin-bottom:0;color:var(--text);font-weight:500;font-style:italic;font-size:16px;line-height:1.6}
+
+    /* Research methods — two primary-research blocks */
+    .research-methods{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin:8px 0 32px}
+    .research-method{border-top:1px solid var(--border);padding-top:20px}
+    .research-method .rm-k{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-3);margin-bottom:10px}
+    .research-method h4{font-size:16px;font-weight:700;letter-spacing:-0.01em;margin:0 0 8px;color:var(--text)}
+    .research-method p{font-size:14px;color:var(--text-2);line-height:1.6;margin:0}
+    @media(max-width:640px){.research-methods{grid-template-columns:1fr;gap:24px}}
+    .research-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:8px 0 14px}
+    .research-gallery img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block;border:1px solid var(--border);cursor:zoom-in;transition:opacity .2s}
+    .research-gallery img:hover{opacity:.85}
+    .research-credit{font-size:12px;color:var(--text-3);line-height:1.5;margin:0 0 24px}
+    @media(max-width:640px){.research-gallery{grid-template-columns:1fr 1fr}}
+
+    /* Story architecture — three-act narrative spine */
+    .story-arc{margin:8px 0 0;border-left:2px solid var(--border);display:grid;gap:26px}
+    .act{position:relative;padding-left:28px}
+    .act::before{content:"";position:absolute;left:-5px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--text);box-shadow:0 0 0 3px var(--bg)}
+    .act:last-child::before{background:var(--accent)}
+    .act-era{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-3);margin-bottom:6px}
+    .act h4{font-size:16px;font-weight:700;letter-spacing:-0.01em;margin:0 0 6px;color:var(--text)}
+    .act p{font-size:14px;color:var(--text-2);line-height:1.6;margin:0}
+
+    /* Usability testing — finding → change pairs */
+    .findings{display:grid;gap:0;margin:8px 0 0}
+    .finding{display:grid;grid-template-columns:1fr 1fr;gap:32px;border-top:1px solid var(--border);padding:22px 0}
+    .finding:last-child{border-bottom:1px solid var(--border)}
+    .f-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-3);margin-bottom:8px}
+    .f-change{color:var(--accent)}
+    .finding p{font-size:14px;color:var(--text-2);line-height:1.6;margin:0}
+    .finding .f-col:last-child p{color:var(--text)}
+    @media(max-width:640px){.finding{grid-template-columns:1fr;gap:14px;padding:18px 0}}
+
+    /* Media caption (under the demo video) */
+    .media-caption{margin:14px 0 0;font-size:13px;color:var(--text-3);text-align:center;line-height:1.5}
+
+
+    /* External link */
+    .ext-link{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--text);margin-top:12px;transition:color 0.2s;letter-spacing:-0.01em}
+    .ext-link:hover{color:var(--accent)}
+    .ext-link:hover{opacity:0.7}
+
+    /* Tab snapshot — pill toggle + 2-col */
+    .snapshot{padding:16px 40px 96px;max-width:800px;margin:0 auto}
+    .snapshot-toggle{display:inline-flex;border:1.5px solid var(--text);border-radius:0;overflow:hidden;margin-bottom:36px}
+    .snapshot-tab{padding:10px 24px;font-size:12px;font-weight:600;letter-spacing:0.02em;color:var(--text-3);cursor:pointer;transition:background 0.3s,color 0.3s;background:transparent;border:none;font-family:var(--font);white-space:nowrap}
+    .snapshot-tab.active{background:var(--text);color:#fff}
+    .snapshot-panel{display:none}
+    .snapshot-panel.active{display:grid;grid-template-columns:1.1fr 1fr;gap:96px;align-items:center}
+    .snapshot-left{}
+    .snapshot-left h3{font-size:clamp(1.5rem,3vw,2.25rem);font-weight:700;letter-spacing:-0.03em;line-height:1.15;margin-bottom:20px}
+    .snapshot-left p{font-size:15px;color:var(--text-2);line-height:1.7;margin-bottom:16px}
+    .snapshot-left p strong{color:var(--text);font-weight:600}
+    .snapshot-left .snap-big-num{font-size:clamp(2.5rem,5vw,3.5rem);font-weight:700;letter-spacing:-0.04em;margin:24px 0 8px}
+    .snapshot-left .snap-big-label{font-size:13px;color:var(--text-3)}
+    .snapshot-right{}
+    .snapshot-list{list-style:none;margin:0;padding:0}
+    .snapshot-list li{padding:20px 0;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start}
+    .snapshot-list li:first-child{padding-top:0}
+    .snapshot-list li:last-child{border-bottom:none}
+    .snapshot-check{width:20px;height:20px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+    .snapshot-check svg{width:12px;height:12px;stroke:var(--text-3);fill:none;stroke-width:2}
+    .snapshot-list-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+    .snapshot-list-desc{font-size:13px;color:var(--text-2);line-height:1.5}
+    @media(max-width:768px){.snapshot{padding:0 20px}.snapshot-panel.active{grid-template-columns:1fr;gap:24px}}
+
+    .case-nav-bar{display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:0 auto;padding:48px 40px;border-top:1px solid var(--border)}
+    .case-nav-link{display:flex;flex-direction:column;gap:4px;text-decoration:none;transition:color 0.2s}
+    .case-nav-link:hover .case-nav-name{color:var(--accent)}
+    .case-nav-link--next{text-align:right;margin-left:auto}
+    .case-nav-dir{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3)}
+    .case-nav-name{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.02em;transition:color 0.2s}
+    .footer{border-top:1px solid var(--border);padding:32px 40px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;font-weight:500}
+    @media(max-width:600px){.footer{flex-direction:column;gap:12px;text-align:center}}
+
+    @media(max-width:768px){
+      nav{padding:0 20px}
+      .hero,.wrap{padding-left:20px;padding-right:20px}
+      .hero-image{padding:0 20px}
+      .stats{grid-template-columns:1fr}
+      .project-meta-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="nav-brand" href="../index.html">
+      <svg class="mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="Penghua Zhou logo" role="img">
+        <rect x="0" y="0" width="32" height="32" rx="6.4" ry="6.4" fill="#0A0A0A"/>
+        <circle cx="8" cy="7" r="1.6" fill="#B6F23A"/>
+        <circle cx="24" cy="25" r="1.6" fill="#B6F23A"/>
+        <path d="M10 12 H22 L10 20 H22"
+              stroke="#B6F23A" stroke-width="3.2"
+              fill="none"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Penghua Zhou
+    </a>
+    <div class="nav-links" id="navMenu">
+      <a href="#sec-overview">Overview</a>
+      <a href="#sec-process">Process</a>
+      <a href="#sec-research">Research</a>
+      <a href="#sec-approach">Experience Design</a>
+      <a href="#sec-technical">Technical</a>
+      <a href="#sec-usability">Usability</a>
+      <a href="#sec-outcome">Outcome</a>
+      <a href="#sec-reflection">Reflection</a>
+    </div>
+    <a class="nav-back" href="../resume.pdf" target="_blank">Resume</a>
+    <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navMenu">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </nav>
+
+  <!-- ─── Hero ─────────────────────────────────── -->
+  <div class="hero">
+    <div class="hero-tags">
+      <span class="hero-tag">2024</span>
+      <span class="hero-tag">Experience Design</span>
+      <span class="hero-tag">Carnegie Mellon ETC</span>
+    </div>
+    <h1 class="hero-title">AR Mixtory</h1>
+    <p class="hero-subtitle">A mixed reality experience that memorializes Pittsburgh's historic Chinatown — bringing a century of forgotten history back to life through browser-based augmented reality.</p>
+    <p class="hero-role"><strong>My role — Experience Designer.</strong> I shaped the narrative, interactions, and emotional arc of the 8–10 minute experience; led the in-experience UI; ran user tests with tourists, immigrants, and students; and worked with historians to keep the recreated world accurate.</p>
+  </div>
+
+  <div class="hero-image">
+    <div style="position:relative;width:100%;padding-top:56.25%;background:#1a1a2e;overflow:hidden">
+      <iframe src="https://www.youtube.com/embed/q7B0HKSTdxQ" title="AR Mixtory Trailer" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe>
+    </div>
+  </div>
+
+  <!-- ─── Project Meta ─────────────────────────── -->
+  <div class="wrap">
+    <div class="project-meta-grid">
+      <div class="project-meta-item">
+        <div class="project-meta-label">Role</div>
+        <div class="project-meta-value">Experience Designer</div>
+      </div>
+      <div class="project-meta-item">
+        <div class="project-meta-label">Team</div>
+        <div class="project-meta-value">6 Carnegie Mellon Students</div>
+      </div>
+      <div class="project-meta-item">
+        <div class="project-meta-label">Client</div>
+        <div class="project-meta-value">WiSELab @ Carnegie Mellon University</div>
+      </div>
+      <div class="project-meta-item">
+        <div class="project-meta-label">Platform</div>
+        <div class="project-meta-value">ARENA (browser-based AR/VR/XR)</div>
+      </div>
+      <div class="project-meta-item">
+        <div class="project-meta-label">Duration</div>
+        <div class="project-meta-value">14 weeks (Jan 2024 - May 2024)</div>
+      </div>
+      <div class="project-meta-item">
+        <div class="project-meta-label">Tools</div>
+        <div class="project-meta-value">Unity, ARENA, Figma, Blender, ElevenLabs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Overview ─────────────────────────────── -->
+  <div class="wrap">
+    <section class="sec" id="sec-overview" style="padding-bottom:24px">
+      <div class="sec-head">
+        <div class="label"><div class="sec-num">01 · Overview</div></div>
+        <h2>Preserving a lost neighborhood through <em>mixed reality</em></h2>
+      </div>
+      <p>Pittsburgh's Chinatown once thrived in the heart of downtown — a vibrant community of immigrants, merchants, and families. By the 1960s, urban redevelopment had erased nearly every trace of it. Today, most Pittsburghers don't know it ever existed.</p>
+      <p><strong>AR Mixtory</strong> is a mixed reality experience that brings this forgotten history back to life. Built on Carnegie Mellon's ARENA platform, it lets users walk through a recreated 1890s Chinatown, interact with historical characters, and uncover the story of a community that shaped the city.</p>
+      <p>The experience is fully <strong>browser-based</strong> — no app downloads, no headsets required. Just open a link and step into history.</p>
+
+      <a href="https://projects.etc.cmu.edu/ar-mixtory/" class="ext-link" target="_blank">Visit Project Website ↗</a>
+    </section>
+  </div>
+
+  <!-- ─── Project Snapshot (Tabbed) — grouped with Overview ──────────── -->
+  <div class="snapshot">
+    <div class="snapshot-toggle">
+      <button class="snapshot-tab active" data-target="snap-mission">Client's Mission</button>
+      <button class="snapshot-tab" data-target="snap-challenge">Challenge</button>
+      <button class="snapshot-tab" data-target="snap-outcome">Outcome</button>
+    </div>
+
+    <div class="snapshot-panel active" id="snap-mission">
+      <div class="snapshot-left">
+        <h3>Two objectives, one experience.</h3>
+        <p>Build a location-based mixed reality experience on ARENA that both <strong>showcases the platform's capabilities</strong> and <strong>creates genuine emotional engagement</strong> with a forgotten neighborhood — designed for school-district students ages 6–15.</p>
+      </div>
+      <div class="snapshot-right">
+        <ul class="snapshot-list">
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">Educate Users About ARENA</div><div class="snapshot-list-desc">Demonstrate storytelling, multi-user interaction, and cross-device accessibility through a compelling experience</div></div>
+          </li>
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">Preserve Lost History</div><div class="snapshot-list-desc">Make users care about Pittsburgh's Chinatown — a neighborhood erased by urban redevelopment in the 1960s</div></div>
+          </li>
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">Browser-Based Access</div><div class="snapshot-list-desc">No app downloads, no headsets required — open a link and step into history on any device</div></div>
+          </li>
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">Engage Students Ages 6–15</div><div class="snapshot-list-desc">Target audience is school-district learners spanning elementary through early high school — the experience must hold attention for both young kids and older teens</div></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="snapshot-panel" id="snap-challenge">
+      <div class="snapshot-left">
+        <h3>Emotional design on an evolving platform.</h3>
+        <p>The core challenge wasn't technical — it was <strong>emotional</strong>. Passive observation wouldn't be enough. We needed users to feel like participants, not spectators.</p>
+      </div>
+      <div class="snapshot-right">
+        <ul class="snapshot-list">
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">Emotional Connection</div><div class="snapshot-list-desc">Creating genuine empathy for people and places from over a century ago</div></div>
+          </li>
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">Platform Constraints</div><div class="snapshot-list-desc">ARENA was still evolving — browser-based XR has real performance limitations</div></div>
+          </li>
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">Zero VR Experience</div><div class="snapshot-list-desc">Target users had never used AR/VR — the experience needed to be instantly intuitive</div></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="snapshot-panel" id="snap-outcome">
+      <div class="snapshot-left">
+        <h3>Presented at ETC Festival.</h3>
+        <p>Target audiences reported feeling a <strong>genuine emotional connection</strong> to the historical characters — validating our agency-driven storytelling approach.</p>
+        <div class="snap-big-num">3 Eras</div>
+        <div class="snap-big-label">1890s · 1930s · 1960s</div>
+      </div>
+      <div class="snapshot-right">
+        <ul class="snapshot-list">
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">8–10 Min Experience</div><div class="snapshot-list-desc">Optimized duration for meaningful engagement without fatigue</div></div>
+          </li>
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">14 Week Sprint</div><div class="snapshot-list-desc">From historical research to polished demo in one semester</div></div>
+          </li>
+          <li>
+            <span class="snapshot-check"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><div class="snapshot-list-title">Cross-Platform</div><div class="snapshot-list-desc">Works on phones, tablets, desktops, and VR headsets via browser</div></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Process — moved up, grouped after Overview (Languru-style dark timeline) ─── -->
+  <section class="process" id="sec-process">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="label"><div class="sec-num">02 · Process</div></div>
+        <h2>14 weeks, from <em>mission to demo</em></h2>
+      </div>
+      <div class="process-timeline">
+        <div class="step">
+          <div class="dot">01</div>
+          <div class="phase">Week 1</div>
+          <h4>Identify the Mission</h4>
+          <p>Unpacked the client's dual goal — showcase ARENA's capabilities and preserve Pittsburgh's lost Chinatown.</p>
+        </div>
+        <div class="step">
+          <div class="dot">02</div>
+          <div class="phase">Week 2 — 3</div>
+          <h4>Research & Discovery</h4>
+          <p>Historical research, ARENA onboarding, persona development, and a scan of comparable MR experiences.</p>
+        </div>
+        <div class="step">
+          <div class="dot">03</div>
+          <div class="phase">Week 4 — 6</div>
+          <h4>Narrative Design & Prototyping</h4>
+          <p>Story structure and interaction design; first playable with a basic environment and character beats.</p>
+        </div>
+        <div class="step">
+          <div class="dot">04</div>
+          <div class="phase">Week 7 — 10</div>
+          <h4>Production & Iteration</h4>
+          <p>3D environments from Smithsonian assets and photogrammetry, ElevenLabs narration, multi-user support.</p>
+        </div>
+        <div class="step">
+          <div class="dot">05</div>
+          <div class="phase">Week 11 — 14</div>
+          <h4>Polish & Presentation</h4>
+          <p>User testing with target audiences, visual polish, performance optimization, and the ETC Festival demo.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Research & Discovery ─────────────────── -->
+  <div class="wrap">
+    <section class="sec" id="sec-research">
+      <div class="sec-head">
+        <div class="label"><div class="sec-num">03 · Research</div></div>
+        <h2>Grounding the story in <em>primary sources</em></h2>
+      </div>
+      <p>A neighborhood that no longer exists can't be designed from assumptions. Before any interaction was sketched, we rebuilt Chinatown from two primary sources — the people who remembered it, and the records that documented it.</p>
+      <div class="research-methods">
+        <div class="research-method">
+          <div class="rm-k">Primary · Oral history</div>
+          <h4>Interview with Shirley Yee</h4>
+          <p>We interviewed Shirley Yee — a Carnegie Mellon professor and daughter of Yuen Yee, the last informal mayor of Pittsburgh's Chinatown — for first-hand accounts of the community and access to her family's photo collection.</p>
+        </div>
+        <div class="research-method">
+          <div class="rm-k">Archival · Field research</div>
+          <h4>The Heinz History Center</h4>
+          <p>We studied historical documentation at the Heinz History Center to map the real street layout and the shops that filled Chinatown across its different eras — the blueprint for every environment we rebuilt.</p>
+        </div>
+      </div>
+      <div class="research-gallery">
+        <img src="https://projects.etc.cmu.edu/ar-mixtory/wp-content/uploads/2024/02/IMG_2198-1024x683.jpg" alt="Photograph from Shirley Yee's family collection">
+        <img src="https://projects.etc.cmu.edu/ar-mixtory/wp-content/uploads/2024/02/IMG_2206-1024x683.jpg" alt="Photograph from Shirley Yee's family collection">
+        <img src="https://projects.etc.cmu.edu/ar-mixtory/wp-content/uploads/2024/02/IMG_2199-1024x683.jpg" alt="Photograph from Shirley Yee's family collection">
+      </div>
+      <p class="research-credit">From Shirley Yee's family collection — the primary-source photographs and documents behind our reconstruction.</p>
+      <p><strong>The takeaway —</strong> these sources gave us what fiction can't fake: real people to anchor the story in, and an accurate map of a place we had to rebuild from nothing. They set up the two principles that shaped everything next — emotional anchoring and temporal layering.</p>
+    </section>
+  </div>
+
+  <!-- ─── Approach ─────────────────────────────── -->
+  <div class="wrap">
+    <section class="sec" id="sec-approach">
+      <div class="sec-head">
+        <div class="label"><div class="sec-num">04 · Experience Design</div></div>
+        <h2>Immersive storytelling through <em>active participation</em></h2>
+      </div>
+      <p>Rather than creating a museum-style walkthrough, we designed the experience as an <strong>exploration tour with storylines</strong>. Users don't just observe — they play a role. They arrive as two brothers, newly immigrated to Pittsburgh's Chinatown in the 1890s, and are given tasks that reveal the neighborhood's history through action.</p>
+
+      <div class="callout">
+        <p>"We wanted users to feel like they're discovering history, not being lectured about it."</p>
+      </div>
+
+      <h3 style="font-size:16px;font-weight:600;margin:32px 0 16px">Design Principles</h3>
+      <ol>
+        <li><strong>Agency over observation</strong> — Every historical fact is revealed through a player action (moving, tapping, exploring), not a wall of text</li>
+        <li><strong>Emotional anchoring</strong> — We used personal stories of individual immigrants rather than abstract historical data</li>
+        <li><strong>Temporal layering</strong> — The experience spans three time periods (1890s, 1930s, 1960s), showing the neighborhood's rise and fall through the same physical space</li>
+        <li><strong>Zero-friction access</strong> — Browser-based, no downloads, works on phone or desktop</li>
+      </ol>
+
+      <h3 style="font-size:16px;font-weight:600;margin:36px 0 16px">Story architecture</h3>
+      <p>The experience is a <strong>two-player co-op story</strong> — you and your brother arrive as immigrants and build a life in Chinatown across two interactive chapters, before a final chapter confronts you with the present.</p>
+      <div class="story-arc">
+        <div class="act">
+          <div class="act-era">Chapter 01 · 1890s</div>
+          <h4>Settling down</h4>
+          <p>The two brothers support each other to put down roots — renting a home in downtown Pittsburgh, transferring money, and decorating the place together. Players tap each other to start interactions and place the materials they need directly in augmented reality.</p>
+        </div>
+        <div class="act">
+          <div class="act-era">Chapter 02 · 1930s</div>
+          <h4>Serving the community</h4>
+          <p>Established now, the brothers give back — providing free food to fellow immigrants. The two players communicate to divide the work, grab ingredients, and cook side by side.</p>
+        </div>
+        <div class="act">
+          <div class="act-era">Chapter 03 · Present</div>
+          <h4>The present day</h4>
+          <p>The story leaves the past behind. Through sound narration and 2D animation, the final chapter reveals what became of Pittsburgh's Chinatown today — the quiet, deliberate turn the whole experience builds toward.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="era-showcase">
+    <div class="era-showcase-title">Chinatown Through the Ages</div>
+    <div class="era-grid">
+      <div class="era-card">
+        <div class="era-card-header">Building concept</div>
+        <div class="era-card-img"><img src="1890.png" alt="1890s Pittsburgh Chinatown"></div>
+        <div class="era-card-footer"><span class="era-label">1890s</span><span class="era-badge">Immigration Era</span></div>
+      </div>
+      <div class="era-card">
+        <div class="era-card-header">Building concept</div>
+        <div class="era-card-img"><img src="1930.png" alt="1930s Pittsburgh Chinatown"></div>
+        <div class="era-card-footer"><span class="era-label">1930s</span><span class="era-badge">Golden Age</span></div>
+      </div>
+      <div class="era-card">
+        <div class="era-card-header">Building concept</div>
+        <div class="era-card-img"><img src="2024.png" alt="Present Day Pittsburgh"></div>
+        <div class="era-card-footer"><span class="era-label">Present</span><span class="era-badge">Redeveloped</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Technical ────────────────────────────── -->
+  <div class="wrap">
+    <section class="sec" id="sec-technical">
+      <div class="sec-head">
+        <div class="label"><div class="sec-num">05 · Technical</div></div>
+        <h2>Building on <em>ARENA</em></h2>
+      </div>
+      <p>ARENA is CMU's open-source augmented reality platform that enables browser-based XR experiences without requiring app downloads. This was both our biggest advantage (accessibility) and our biggest constraint (performance limitations).</p>
+      <ul>
+        <li><strong>3D Assets:</strong> Sourced from Smithsonian Institution's 3D Digitization Collections, supplemented with custom photogrammetry</li>
+        <li><strong>Voice Acting:</strong> AI-generated narration via ElevenLabs with historically-appropriate accents</li>
+        <li><strong>Multi-user:</strong> Real-time collaborative functionality — multiple users can explore simultaneously</li>
+        <li><strong>Cross-platform:</strong> Works on phones, tablets, desktops, and VR headsets through the browser</li>
+      </ul>
+      <p>Because ARENA is a <strong>mixed-reality</strong> platform, the experience also had to be <strong>location-based</strong> — every virtual element is pinned to a real-world position. So we physically built and decorated the room to mirror the digital scene, placing props and markers so the AR layer lined up precisely with the space.</p>
+    </section>
+  </div>
+
+  <div class="hero-image">
+    <div style="position:relative;width:100%;padding-top:56.25%;background:#1a1a2e;overflow:hidden">
+      <iframe src="https://www.youtube.com/embed/gLyk5UVE9iA" title="AR Mixtory — Room Walkthrough" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe>
+    </div>
+    <p class="media-caption">A walkthrough of the physical room — built and dressed so every virtual item lands in the right place.</p>
+  </div>
+
+  <!-- ─── Usability Testing ────────────────────── -->
+  <div class="wrap">
+    <section class="sec" id="sec-usability">
+      <div class="sec-head">
+        <div class="label"><div class="sec-num">06 · Usability Testing</div></div>
+        <h2>What playtesting <em>changed</em></h2>
+      </div>
+      <p>Playtesting ran through every milestone — the client first, then instructors and a subject-matter expert, and finally 21 players in open sessions, with pre- and post-experience surveys measuring each against our goals. Three findings reshaped the design:</p>
+      <div class="findings">
+        <div class="finding">
+          <div class="f-col">
+            <div class="f-label">We observed</div>
+            <p>Players only collaborated when they already knew each other — strangers stayed quiet and missed the point of a two-player experience.</p>
+          </div>
+          <div class="f-col">
+            <div class="f-label f-change">We changed</div>
+            <p>Added a tutorial that makes both players see each other's avatar before starting — so collaboration is the very first thing they do.</p>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="f-col">
+            <div class="f-label">We observed</div>
+            <p>The interface was too obtrusive, and the in-experience text was hard to read.</p>
+          </div>
+          <div class="f-col">
+            <div class="f-label f-change">We changed</div>
+            <p>Shrank the UI, reworded the prompts, and rebuilt the background for legibility.</p>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="f-col">
+            <div class="f-label">We observed</div>
+            <p>Players wanted to connect the virtual neighborhood to the real one — "how does this map to the actual Pittsburgh Chinatown?"</p>
+          </div>
+          <div class="f-col">
+            <div class="f-label f-change">We changed</div>
+            <p>Added source citations and descriptive text to the historical photos, and an end video tying them to present-day map imagery.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ─── Outcome ──────────────────────────────── -->
+  <div class="wrap">
+    <section class="sec" id="sec-outcome">
+      <div class="sec-head">
+        <div class="label"><div class="sec-num">07 · Outcome</div></div>
+        <h2>The finished experience, <em>and how it landed</em></h2>
+      </div>
+      <p>The result is a polished, two-player experience that premiered at the <strong>ETC Festival</strong>. Across testing, the surprise wasn't just that people enjoyed it — it was the <strong>educational pull</strong>: players said they learned about Pittsburgh's Chinatown and wanted to learn more, and parents were caught teaching their kids mid-experience. That's the whole goal — making people care about a neighborhood they'd never heard of — landing in real time.</p>
+    </section>
+  </div>
+
+  <div class="hero-image">
+    <div style="position:relative;width:100%;padding-top:56.25%;background:#1a1a2e;overflow:hidden">
+      <iframe src="https://www.youtube.com/embed/pcGUgS-1vcg?start=3" title="AR Mixtory Final Demo" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe>
+    </div>
+    <p class="media-caption">Full walkthrough — the final two-player experience, start to finish.</p>
+  </div>
+
+  <!-- ─── Reflection ───────────────────────────── -->
+  <div class="wrap">
+    <section class="sec" id="sec-reflection">
+      <div class="sec-head">
+        <div class="label"><div class="sec-num">08 · Reflection</div></div>
+        <h2>What I <em>learned</em></h2>
+      </div>
+      <p>This project changed how I think about <strong>design as preservation</strong>. Technology is often used to create new things — but it can also be used to recover what's been lost. The most powerful design decisions weren't about UI patterns or interaction models. They were about empathy — deciding which stories to tell and how to make people feel them.</p>
+      <p>Working with ARENA also taught me to <strong>design within constraints</strong>. Browser-based XR can't compete with native apps on raw performance. But by focusing on storytelling quality over graphical fidelity, we created something that felt more meaningful than many polished VR experiences.</p>
+    </section>
+  </div>
+
+  <!-- ─── Navigation ───────────────────────────── -->
+  <div class="case-nav-bar">
+    <a href="Languru/Languru Case Study.html" class="case-nav-link case-nav-link--prev">
+      <span class="case-nav-dir">← Previous</span>
+      <span class="case-nav-name">Languru</span>
+    </a>
+    <a href="kidco-growth.html" class="case-nav-link case-nav-link--next">
+      <span class="case-nav-dir">Next →</span>
+      <span class="case-nav-name">KidCo AI</span>
+    </a>
+  </div>
+
+  <div class="footer">
+    <div>© 2024 · AR Mixtory Case Study</div>
+    <div>Penghua Zhou · Product Design</div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <span class="lightbox-close">✕</span>
+    <button class="lightbox-nav lightbox-prev" type="button" aria-label="Previous image">‹</button>
+    <img src="" alt="" id="lightbox-img">
+    <button class="lightbox-nav lightbox-next" type="button" aria-label="Next image">›</button>
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
+
+  <script>
+    // Tab switching for snapshot
+    document.querySelectorAll('.snapshot-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const parent = tab.closest('.snapshot');
+        parent.querySelectorAll('.snapshot-tab').forEach(t => t.classList.remove('active'));
+        parent.querySelectorAll('.snapshot-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).classList.add('active');
+      });
+    });
+
+    // Scroll reveal for era cards
+    const eraObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('in-view'); eraObs.unobserve(e.target); }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.era-card, .step').forEach(c => eraObs.observe(c));
+
+    // Lightbox
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    const lbCap = document.getElementById('lightbox-caption');
+    const lbPrev = lb.querySelector('.lightbox-prev');
+    const lbNext = lb.querySelector('.lightbox-next');
+
+    let lbGroup = [];
+    let lbIndex = 0;
+
+    function lbShow(i){
+      const n = lbGroup.length;
+      if (!n) return;
+      lbIndex = (i + n) % n;            // wrap around
+      const item = lbGroup[lbIndex];
+      lbImg.src = item.src;
+      lbImg.alt = item.alt;
+      lbCap.textContent = item.caption;
+      const multi = n > 1;              // hide arrows for single-image groups
+      lbPrev.style.display = multi ? '' : 'none';
+      lbNext.style.display = multi ? '' : 'none';
+    }
+    function lbOpen(group, i){ lbGroup = group; lbShow(i); lb.classList.add('open'); }
+    function lbClose(){ lb.classList.remove('open'); }
+
+    const eraImgs = [...document.querySelectorAll('.era-card img')].map(img => ({ src: img.src, alt: img.alt, caption: img.alt }));
+    document.querySelectorAll('.era-card').forEach((card, i) => {
+      card.style.cursor = 'zoom-in';
+      card.addEventListener('click', () => lbOpen(eraImgs, i));
+    });
+
+    const researchImgs = [...document.querySelectorAll('.research-gallery img')].map(img => ({ src: img.src, alt: img.alt, caption: "Shirley Yee's Collection" }));
+    document.querySelectorAll('.research-gallery img').forEach((img, i) => {
+      img.addEventListener('click', () => lbOpen(researchImgs, i));
+    });
+
+    lbPrev.addEventListener('click', e => { e.stopPropagation(); lbShow(lbIndex - 1); });
+    lbNext.addEventListener('click', e => { e.stopPropagation(); lbShow(lbIndex + 1); });
+    lbImg.addEventListener('click', e => { e.stopPropagation(); lbShow(lbIndex + 1); });   // click image → next
+    lb.addEventListener('click', lbClose);                                                 // click backdrop → close
+    document.addEventListener('keydown', e => {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') lbClose();
+      else if (e.key === 'ArrowRight') lbShow(lbIndex + 1);
+      else if (e.key === 'ArrowLeft') lbShow(lbIndex - 1);
+    });
+
+    /* ── Mobile nav drawer — hamburger toggles .is-open on the nav. ── */
+    (function(){
+      const nav = document.querySelector('.nav');
+      const toggle = nav && nav.querySelector('.nav-toggle');
+      if(!nav || !toggle) return;
+      function setOpen(open){
+        nav.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+      }
+      toggle.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
+      nav.querySelectorAll('.nav-links a').forEach(a => {
+        a.addEventListener('click', () => setOpen(false));
+      });
+      window.addEventListener('resize', () => {
+        if(window.innerWidth > 900) setOpen(false);
+      });
+    })();
+
+    /* ── Nav scroll-spy: highlight the link matching the section under the reader's gaze. ── */
+    (function(){
+      const links = Array.from(document.querySelectorAll('.nav-links a[href^="#"]'));
+      if (!links.length) return;
+      const pairs = links
+        .map(a => ({ link:a, section:document.getElementById(a.getAttribute('href').slice(1)) }))
+        .filter(p => p.section);
+      if (!pairs.length) return;
+
+      const NAV_OFFSET = 100;
+      function update(){
+        let bestId = null;
+        let bestTop = -Infinity;
+        for (const { section } of pairs){
+          const top = section.getBoundingClientRect().top - NAV_OFFSET;
+          if (top <= 0 && top > bestTop){
+            bestTop = top;
+            bestId = section.id;
+          }
+        }
+        for (const p of pairs){
+          p.link.classList.toggle('is-active', p.section.id === bestId);
+        }
+      }
+
+      let raf = 0;
+      function onScroll(){
+        if (raf) return;
+        raf = requestAnimationFrame(() => { update(); raf = 0; });
+      }
+      window.addEventListener('scroll', onScroll, { passive:true });
+      window.addEventListener('resize', onScroll);
+      update();
+    })();
+  </script>
+</body>
+</html>

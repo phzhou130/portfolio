@@ -1,0 +1,7 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="Penghua Zhou logo" role="img">
+  <circle cx="16" cy="16" r="16" fill="#0A0A0A"/>
+  <path d="M10 11 H22 L10 21 H22"
+        stroke="#B6F23A" stroke-width="3.4"
+        fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

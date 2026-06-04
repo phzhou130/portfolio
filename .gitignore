@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# macOS
+.DS_Store
+
+# Local tooling / config (not part of the site)
+.claude/
+design-extractor/
+design-system/
+
+# Dev notes (not served by the site)
+CLAUDE.md
+design.md
+package.json
+package-lock.json
+
+# Raw source material — not referenced by any page (site serves from assets/)
+AnimationPoker/
+AR_Mixtory/
+TencentAssets/
+AR_Mixtory_profile.png
+Copy of KiD Brand Book.pdf
+
+# Ads_Design: raw source ignored; only the files referenced by the case pages
+# are tracked (force-added in git), to keep the published repo lean.
+Ads_Design/

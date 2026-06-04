@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MakOS — Creative Portfolio</title>
+<style>
+  :root {
+    --accent: #34d36b;
+    --bg: #04080a;
+    --ink: #1c1c1e;
+    --muted: #86868b;
+    --hair: rgba(0,0,0,0.08);
+    --sys: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    font-family: var(--sys);
+    color: var(--ink);
+    background: #fbfdfb;
+    background-image:
+      radial-gradient(60% 55% at 50% 52%, rgba(150,205,150,0.42) 0%, rgba(178,222,178,0.22) 32%, rgba(225,242,228,0.10) 58%, rgba(251,253,251,0) 80%);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #root { position: fixed; inset: 0; }
+
+  .desktop { position: absolute; inset: 0; overflow: hidden; }
+
+  /* ---------- widgets ---------- */
+  .widget {
+    position: absolute; z-index: 1; width: 218px; height: 218px; border-radius: 26px;
+    padding: 18px 20px; overflow: hidden;
+    background: rgba(255,255,255,0.34);
+    backdrop-filter: saturate(160%) blur(22px); -webkit-backdrop-filter: saturate(160%) blur(22px);
+    box-shadow: 0 0 0 0.5px rgba(60,90,65,0.10), 0 18px 44px rgba(70,110,80,0.16),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .wg-cal { left: 40px; top: 40px; }
+  .cal-month { font-size: 15px; font-weight: 700; color: #3a7a4a; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 8px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px 0; }
+  .cal-grid .dow { font-size: 11px; font-weight: 600; color: #8aa890; text-align: center; padding-bottom: 3px; }
+  .cal-grid .day { font-size: 12.5px; font-weight: 500; color: #3a4a3d; text-align: center; line-height: 22px; height: 22px; }
+  .cal-grid .day.muted { color: rgba(58,74,61,0.28); }
+  .cal-grid .day.today { color: #fff; position: relative; }
+  .cal-grid .day.today::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+       width: 22px; height: 22px; border-radius: 50%; background: #5fa36e; z-index: -1; }
+
+  .wg-weather { left: 278px; top: 40px; display: flex; flex-direction: column; }
+  .wt-city { font-size: 19px; font-weight: 700; color: #2f4636; letter-spacing: -0.01em; }
+  .wt-temp { font-size: 52px; font-weight: 300; color: #2f4636; line-height: 1; margin-top: 2px; letter-spacing: -0.03em; }
+  .wt-foot { margin-top: auto; }
+  .wt-cond { font-size: 15px; font-weight: 600; color: #2f4636; }
+  .wt-hl { font-size: 13.5px; font-weight: 500; color: #5a7060; margin-top: 1px; }
+  .wt-sun { width: 24px; height: 24px; margin-bottom: 6px; }
+
+  .deskclock { position: absolute; left: 50%; top: 7.5%; transform: translateX(-50%); z-index: 1;
+               text-align: center; pointer-events: none; }
+  .deskclock .dc-date { font-size: 14.5px; font-weight: 600; color: #4a7a52; letter-spacing: 0.01em; opacity: 0.9; }
+  .deskclock .dc-time { font-size: 86px; font-weight: 700; color: #2f5638; letter-spacing: -0.02em;
+                        line-height: 1; margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- soft gradient wallpaper ---------- */
+  .wallpaper { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .wallpaper .bloom {
+    position: absolute; width: 1200px; height: 1000px; left: 50%; top: 50%;
+    transform: translate(-50%,-50%);
+    background: radial-gradient(closest-side, rgba(140,200,145,0.40), rgba(160,212,165,0.16) 55%, rgba(140,200,145,0) 78%);
+    filter: blur(50px); animation: bloomFloat 26s ease-in-out infinite;
+  }
+  @keyframes bloomFloat { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-54%) scale(1.06); } }
+  /* paper grain + vignette for depth */
+  .desktop::after {
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0.035;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 170px 170px;
+  }
+  .desktop::before {
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(140% 135% at 50% 45%, rgba(255,255,255,0) 60%, rgba(210,225,212,0.35) 100%);
+  }
+
+  /* ---------- placeholder ---------- */
+  .ph {
+    background-color: #ececee;
+    background-image: repeating-linear-gradient(135deg, rgba(0,0,0,0.045) 0 8px, rgba(0,0,0,0) 8px 16px);
+    display: flex; align-items: center; justify-content: center;
+    color: #9a9aa0; font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 10px; letter-spacing: 0.04em; text-transform: lowercase;
+    text-align: center; overflow: hidden; position: relative;
+  }
+  .ph span { padding: 4px 6px; mix-blend-mode: multiply; }
+
+  /* ---------- desktop icons ---------- */
+  .icon {
+    position: absolute; width: 112px; display: flex; flex-direction: column;
+    align-items: center; gap: 9px; cursor: default; touch-action: none;
+    z-index: 2;
+  }
+  .icon:active { cursor: default; }
+  .icon .thumb {
+    width: 88px; height: 88px; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.10),
+                inset 0 0 0 0.5px rgba(255,255,255,0.6);
+    transition: transform 0.22s cubic-bezier(.2,.9,.3,1), box-shadow 0.22s;
+  }
+  .icon:hover .thumb { transform: translateY(-3px) scale(1.04); box-shadow: 0 14px 30px rgba(0,0,0,0.18); }
+  .icon .label {
+    font-size: 13px; color: #1c2e1f; font-weight: 500; letter-spacing: -0.01em;
+    text-align: center; line-height: 1.25; max-width: 110px;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+  }
+  .icon.dragging .thumb { transform: scale(1.08); box-shadow: 0 22px 44px rgba(0,0,0,0.22); }
+
+  /* ---------- window ---------- */
+  .win {
+    position: absolute; background: rgba(255,255,255,0.86);
+    backdrop-filter: saturate(180%) blur(30px); -webkit-backdrop-filter: saturate(180%) blur(30px);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 0 0 0.5px rgba(0,0,0,0.14),
+                0 40px 80px rgba(0,0,0,0.22), 0 12px 24px rgba(0,0,0,0.12);
+    display: flex; flex-direction: column;
+    animation: pop 0.34s cubic-bezier(.2,.9,.25,1.05);
+  }
+  @keyframes pop { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: none; } }
+  .titlebar {
+    height: 46px; flex: 0 0 46px; display: flex; align-items: center;
+    padding: 0 16px; cursor: grab; position: relative;
+    border-bottom: 0.5px solid var(--hair);
+    background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(250,250,251,0.5));
+  }
+  .titlebar:active { cursor: grabbing; }
+  .lights { display: flex; gap: 8px; align-items: center; }
+  .light { width: 12px; height: 12px; border-radius: 50%; position: relative; cursor: pointer;
+           box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.12); }
+  .light.r { background: #ff5f57; }
+  .light.y { background: #febc2e; }
+  .light.g { background: #28c840; }
+  .lights:hover .light::after { content: ""; position: absolute; inset: 0; }
+  .light .glyph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+                  font-size: 9px; color: rgba(0,0,0,0.5); opacity: 0; font-weight: 700; }
+  .lights:hover .glyph { opacity: 1; }
+  .wtitle {
+    position: absolute; left: 0; right: 0; text-align: center; pointer-events: none;
+    font-size: 13.5px; font-weight: 600; color: #3a3a3c; letter-spacing: -0.01em;
+  }
+  .wbody { overflow: auto; flex: 1 1 auto; }
+
+  /* project window body */
+  .pj-hero { width: 100%; height: 300px; }
+  .pj-meta { padding: 22px 26px 6px; }
+  .pj-kicker { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .pj-title { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin: 8px 0 2px; }
+  .pj-sub { font-size: 14px; color: var(--muted); }
+  .pj-text { padding: 14px 26px 4px; font-size: 14.5px; line-height: 1.6; color: #3a3a3c; max-width: 60ch; }
+  .pj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px 26px 28px; }
+  .pj-grid .ph { height: 150px; border-radius: 10px; }
+
+  /* about window */
+  .about { padding: 0; }
+  .about-top { display: flex; gap: 20px; padding: 26px 26px 18px; align-items: center; }
+  .about-top .ph { width: 96px; height: 96px; border-radius: 24px; flex: 0 0 96px; }
+  .about-name { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+  .about-role { font-size: 14px; color: var(--accent); font-weight: 500; margin-top: 3px; }
+  .about-loc { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .about-body { padding: 0 26px 8px; font-size: 14.5px; line-height: 1.65; color: #3a3a3c; }
+  .about-body p { margin: 0 0 14px; }
+  .about-list { padding: 8px 26px 26px; }
+  .about-row { display: flex; justify-content: space-between; padding: 11px 0; border-top: 0.5px solid var(--hair); font-size: 14px; }
+  .about-row .k { color: var(--muted); }
+  .about-row .v { font-weight: 500; }
+
+  /* notes window */
+  .notes-wrap { display: flex; height: 100%; }
+  .notes-side { width: 200px; flex: 0 0 200px; border-right: 0.5px solid var(--hair); background: rgba(250,250,250,0.6); padding: 10px 8px; overflow: auto; }
+  .note-item { padding: 9px 11px; border-radius: 8px; cursor: pointer; margin-bottom: 2px; }
+  .note-item.active { background: rgba(255,210,90,0.45); }
+  .note-item .nt { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .note-item .np { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .note-item .nd { font-size: 11px; color: #b0b0b5; margin-top: 3px; }
+  .notes-main { flex: 1; padding: 26px 30px; overflow: auto; }
+  .notes-date { text-align: center; font-size: 11px; color: #b0b0b5; margin-bottom: 14px; }
+  .notes-h { font-size: 20px; font-weight: 700; margin: 0 0 12px; }
+  .notes-main p { font-size: 14.5px; line-height: 1.65; color: #2c2c2e; margin: 0 0 12px; }
+
+  /* ---------- dock ---------- */
+  .dock {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    display: flex; align-items: flex-end; gap: 10px; padding: 10px 12px;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: saturate(180%) blur(26px); -webkit-backdrop-filter: saturate(180%) blur(26px);
+    border-radius: 24px; box-shadow: 0 0 0 0.5px rgba(60,90,65,0.10), 0 18px 40px rgba(70,110,80,0.16),
+                inset 0 1px 0 rgba(255,255,255,0.85);
+    z-index: 1000;
+  }
+  .dock-item { width: 54px; height: 54px; border-radius: 14px; cursor: pointer; position: relative;
+               transition: transform 0.18s cubic-bezier(.2,.9,.3,1); display: flex; align-items: center; justify-content: center;
+               text-decoration: none; }
+  .dock-item .di-art { position: absolute; inset: 0; border-radius: 14px; overflow: hidden; }
+  .dock-item:hover { transform: translateY(-10px) scale(1.12); }
+  .dock-item .tip {
+    position: absolute; top: -44px; left: 50%; transform: translateX(-50%) translateY(4px);
+    background: #ffffff; color: #1c1c1e; font-size: 13px; padding: 6px 13px; border-radius: 11px;
+    white-space: nowrap; opacity: 0; pointer-events: none; font-weight: 500; letter-spacing: -0.01em;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.28), 0 0 0 0.5px rgba(0,0,0,0.06);
+    transition: opacity 0.16s ease, transform 0.16s cubic-bezier(.2,.9,.3,1);
+  }
+  .dock-item .tip::after {
+    content: ""; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg);
+    width: 10px; height: 10px; background: #ffffff; border-radius: 2px;
+    box-shadow: 1px 1px 0 0.5px rgba(0,0,0,0.04);
+  }
+  .dock-item:hover .tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .dock-item .dot { position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+                    width: 4px; height: 4px; border-radius: 50%; background: rgba(0,0,0,0.45); }
+  .dock-sep { width: 0.5px; height: 42px; background: rgba(40,70,45,0.16); margin: 0 2px; align-self: center; }
+
+  .di-profile { box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.08); }
+  .di-notes .di-art { background: #fff; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.12); display: flex; flex-direction: column; }
+  .di-notes .nb-top { height: 16px; background: #fdd33f; }
+  .di-notes .nb-body { flex: 1; padding: 6px 7px; display: flex; flex-direction: column; gap: 4px; }
+  .di-notes .nb-line { height: 2px; border-radius: 2px; background: #d9d9dd; }
+  .di-ig { background: radial-gradient(120% 120% at 30% 110%, #ffd84d 0%, #ff5e3a 28%, #ff2d77 55%, #c837ab 78%, #6a4bff 100%); }
+  .di-ig .ig-sq { width: 26px; height: 26px; border: 2.4px solid #fff; border-radius: 9px; position: relative; }
+  .di-ig .ig-sq::before { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+                          width: 11px; height: 11px; border: 2.4px solid #fff; border-radius: 50%; }
+  .di-ig .ig-sq::after { content: ""; position: absolute; top: 3.5px; right: 3.5px; width: 3px; height: 3px; border-radius: 50%; background: #fff; }
+  .di-x { background: #000; color: #fff; font-weight: 700; font-size: 26px; line-height: 1; }
+  .di-li { background: #0a66c2; }
+  .di-li .li-in { color: #fff; font-weight: 800; font-size: 25px; letter-spacing: -0.04em; line-height: 1; }
+
+  .cursor-hint { position: fixed; z-index: 2000; pointer-events: none; transform: translate(16px, 18px);
+          font-size: 12.5px; letter-spacing: -0.01em; color: rgba(255,255,255,0.92);
+          background: rgba(20,22,24,0.66); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+          padding: 6px 11px; border-radius: 9px; white-space: nowrap;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.38), inset 0 0 0 0.5px rgba(255,255,255,0.14);
+          transition: opacity 0.3s; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect, useCallback } = React;
+
+/* ---------------- data ---------------- */
+const PROJECTS = [
+  { id: "leau",    title: "Là où dort l'eau",   year: "2024", medium: "Photography", ph: "still water",
+    x: 0.43, y: 0.52,
+    desc: "A study of stillness — reservoirs at first light, where the surface holds the sky and refuses to move. Shot over three mornings on the edge of an alpine basin." },
+  { id: "champ",   title: "Champ Silencieux",    year: "2023", medium: "Photography", ph: "open field",
+    x: 0.27, y: 0.50,
+    desc: "Three figures in a wheat field at dusk. The silence is the subject; the people are only there to measure it." },
+  { id: "lisiere", title: "Lisière",             year: "2024", medium: "Photography", ph: "forest edge",
+    x: 0.21, y: 0.66,
+    desc: "The threshold where the forest gives way to the river. A series about edges — of light, of land, of attention." },
+  { id: "elan",    title: "Élan Brut",           year: "2023", medium: "Editorial",   ph: "city block",
+    x: 0.70, y: 0.70,
+    desc: "Raw momentum in concrete. An editorial set against post-war housing blocks, all hard geometry and soft tailoring." },
+  { id: "miroirs", title: "Les Silences Miroirs", year: "2022", medium: "Portrait",   ph: "two seated",
+    x: 0.66, y: 0.20,
+    desc: "Two seated portraits, mirrored. A quiet conversation about how we hold ourselves when we think no one is watching." },
+  { id: "revolte", title: "Révolte douce",       year: "2024", medium: "Fashion",     ph: "white linen",
+    x: 0.76, y: 0.44,
+    desc: "A gentle revolt — white linen, bare feet, full sun. Movement caught between protest and dance." },
+];
+
+const NOTES = [
+  { id: "n1", title: "Studio — to do", date: "May 28, 2026", preview: "Reprint Lisière at A1 · call the framer …",
+    body: ["Reprint Lisière at A1 for the September show.", "Call the framer about non-reflective glass.", "Backup the 2024 reservoir scans to the cold drive.", "Light test for the next portrait set — north window, 9am."] },
+  { id: "n2", title: "On stillness", date: "May 14, 2026", preview: "Notes toward an artist statement …",
+    body: ["Notes toward an artist statement.", "I keep returning to the same idea: that a photograph is not a record of a moment but of a waiting. The field, the water, the edge of the trees — they were all there long before I arrived and will be there long after. I'm only borrowing the silence."] },
+  { id: "n3", title: "Trip — Vosges", date: "Apr 30, 2026", preview: "Train to Épinal, then the basin …",
+    body: ["Train to Épinal, then drive to the basin.", "Shoot the reservoir at first light, three mornings.", "Pack: the 6×7, two rolls of Portra, the cable release, warm coffee."] },
+];
+
+/* ---------------- placeholder ---------------- */
+function Placeholder({ label, style, className }) {
+  return (
+    <div className={"ph " + (className || "")} style={style}>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+/* ---------------- drag hook ---------------- */
+function useDrag(pos, setPos, onStart) {
+  const ref = useRef(null);
+  const onPointerDown = useCallback((e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (onStart) onStart();
+    const startX = e.clientX, startY = e.clientY;
+    const origin = { ...pos };
+    let moved = false;
+    const move = (ev) => {
+      const dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      setPos({ x: origin.x + dx, y: origin.y + dy });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      if (ref.current) ref.current._moved = moved;
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }, [pos, setPos, onStart]);
+  return { onPointerDown, ref };
+}
+
+/* ---------------- minimal gradient wallpaper ---------------- */
+function Wallpaper() {
+  // pure black→green gradient lives on <body>; this layer adds a soft
+  // drifting green bloom for subtle depth without clutter.
+  return (
+    <div className="wallpaper">
+      <div className="bloom"></div>
+    </div>
+  );
+}
+
+function DeskClock() {
+  const [now, setNow] = React.useState(new Date());
+  React.useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const date = days[now.getDay()] + " " + months[now.getMonth()] + " " + now.getDate();
+  return (
+    <div className="deskclock">
+      <div className="dc-date">{date} · Creative Cases</div>
+      <div className="dc-time">{hh}:{mm}</div>
+    </div>
+  );
+}
+
+/* ---------------- widgets ---------------- */
+function CalendarWidget() {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth(), today = now.getDate();
+  const monthName = ["January","February","March","April","May","June","July","August","September","October","November","December"][m];
+  const first = new Date(y, m, 1).getDay();
+  const daysIn = new Date(y, m + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < first; i++) cells.push(null);
+  for (let d = 1; d <= daysIn; d++) cells.push(d);
+  return (
+    <div className="widget wg-cal">
+      <div className="cal-month">{monthName}</div>
+      <div className="cal-grid">
+        {["S","M","T","W","T","F","S"].map((d, i) => <div key={"h"+i} className="dow">{d}</div>)}
+        {cells.map((d, i) => (
+          <div key={i} className={"day" + (d === today ? " today" : "") + (d === null ? " muted" : "")}>{d || ""}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WeatherWidget() {
+  return (
+    <div className="widget wg-weather">
+      <div className="wt-city">Mountain View</div>
+      <div className="wt-temp">68°</div>
+      <div className="wt-foot">
+        <svg className="wt-sun" viewBox="0 0 24 24" fill="none" stroke="#e8a93c" strokeWidth="2" strokeLinecap="round">
+          <circle cx="12" cy="12" r="4.2" fill="#f2c45a" stroke="#e8a93c" />
+          <g><line x1="12" y1="2" x2="12" y2="5" /><line x1="12" y1="19" x2="12" y2="22" />
+          <line x1="2" y1="12" x2="5" y2="12" /><line x1="19" y1="12" x2="22" y2="12" />
+          <line x1="4.9" y1="4.9" x2="7" y2="7" /><line x1="17" y1="17" x2="19.1" y2="19.1" />
+          <line x1="4.9" y1="19.1" x2="7" y2="17" /><line x1="17" y1="7" x2="19.1" y2="4.9" /></g>
+        </svg>
+        <div className="wt-cond">Sunny</div>
+        <div className="wt-hl">H:72° L:54°</div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- desktop icon ---------------- */
+function DesktopIcon({ project, onOpen }) {
+  const init = {
+    x: project.x * window.innerWidth - 56,
+    y: project.y * window.innerHeight - 56,
+  };
+  const [pos, setPos] = useState(init);
+  const [drag, setDrag] = useState(false);
+  const { onPointerDown, ref } = useDrag(pos, setPos, () => setDrag(true));
+  const handleUp = () => {
+    setDrag(false);
+    if (ref.current && !ref.current._moved) onOpen(project.id);
+  };
+  return (
+    <div
+      ref={ref}
+      className={"icon" + (drag ? " dragging" : "")}
+      style={{ left: pos.x, top: pos.y }}
+      onPointerDown={onPointerDown}
+      onPointerUp={handleUp}
+    >
+      <Placeholder className="thumb" label={project.ph} />
+      <div className="label">{project.title}</div>
+    </div>
+  );
+}
+
+/* ---------------- window ---------------- */
+function Win({ w, onClose, onFocus }) {
+  const [pos, setPos] = useState({ x: w.x, y: w.y });
+  const { onPointerDown } = useDrag(pos, setPos, onFocus);
+  return (
+    <div className="win"
+      style={{ left: pos.x, top: pos.y, width: w.width, height: w.height, zIndex: w.z }}
+      onPointerDown={onFocus}>
+      <div className="titlebar" onPointerDown={onPointerDown}>
+        <div className="lights">
+          <div className="light r" onClick={onClose}><span className="glyph">×</span></div>
+          <div className="light y"></div>
+          <div className="light g"></div>
+        </div>
+        <div className="wtitle">{w.titleLabel}</div>
+      </div>
+      <div className="wbody">{w.content}</div>
+    </div>
+  );
+}
+
+/* ---------------- window content builders ---------------- */
+function ProjectBody({ p }) {
+  return (
+    <div className="about">
+      <Placeholder className="pj-hero" label={p.ph + " — hero image"} />
+      <div className="pj-meta">
+        <div className="pj-kicker">{p.medium} · {p.year}</div>
+        <div className="pj-title">{p.title}</div>
+        <div className="pj-sub">A series by Makari Diallo</div>
+      </div>
+      <div className="pj-text">{p.desc}</div>
+      <div className="pj-grid">
+        <Placeholder label={p.ph + " 01"} />
+        <Placeholder label={p.ph + " 02"} />
+      </div>
+    </div>
+  );
+}
+
+function AboutBody() {
+  return (
+    <div className="about">
+      <div className="about-top">
+        <Placeholder label="portrait" />
+        <div>
+          <div className="about-name">Makari Diallo</div>
+          <div className="about-role">Photographer & Art Director</div>
+          <div className="about-loc">Based in Paris · Working everywhere</div>
+        </div>
+      </div>
+      <div className="about-body">
+        <p>I make quiet pictures. For the last decade I've worked between editorial fashion and personal landscape series, always chasing the same thing — the moment just before or just after something happens.</p>
+        <p>My work has appeared in independent print and gallery shows across France and Senegal. I shoot mostly on medium format, mostly in natural light.</p>
+      </div>
+      <div className="about-list">
+        <div className="about-row"><span className="k">Selected clients</span><span className="v">Atelier Nord · Revue Blanche</span></div>
+        <div className="about-row"><span className="k">Recognition</span><span className="v">Prix Découverte, 2023</span></div>
+        <div className="about-row"><span className="k">Available for</span><span className="v">Commissions & prints</span></div>
+        <div className="about-row"><span className="k">Contact</span><span className="v" style={{color:"var(--accent)"}}>hello@makari.studio</span></div>
+      </div>
+    </div>
+  );
+}
+
+function NotesBody() {
+  const [active, setActive] = useState(NOTES[0].id);
+  const note = NOTES.find(n => n.id === active);
+  return (
+    <div className="notes-wrap">
+      <div className="notes-side">
+        {NOTES.map(n => (
+          <div key={n.id} className={"note-item" + (n.id === active ? " active" : "")}
+               onClick={() => setActive(n.id)}>
+            <div className="nt">{n.title}</div>
+            <div className="np">{n.preview}</div>
+            <div className="nd">{n.date}</div>
+          </div>
+        ))}
+      </div>
+      <div className="notes-main">
+        <div className="notes-date">{note.date}</div>
+        <div className="notes-h">{note.title}</div>
+        {note.body.map((para, i) => <p key={i}>{para}</p>)}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- dock ---------------- */
+function Dock({ onOpen }) {
+  return (
+    <div className="dock">
+      <div className="dock-item di-profile" onClick={() => { window.location.href = "../index.html"; }}>
+        <div className="di-art"><img src="assets/pz-logo.png" alt="Portfolio" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></div>
+        <span className="tip">Portfolio</span>
+      </div>
+      <div className="dock-item di-notes" onClick={() => onOpen("notes")}>
+        <div className="di-art">
+          <div className="nb-top"></div>
+          <div className="nb-body">
+            <div className="nb-line" style={{ width: "90%" }}></div>
+            <div className="nb-line" style={{ width: "70%" }}></div>
+            <div className="nb-line" style={{ width: "80%" }}></div>
+          </div>
+        </div>
+        <span className="tip">Notes</span>
+      </div>
+      <div className="dock-sep"></div>
+      <a className="dock-item di-li" href="https://www.linkedin.com/in/penghuazhou/" target="_blank" rel="noreferrer">
+        <span className="li-in">in</span>
+        <span className="tip">LinkedIn</span>
+      </a>
+    </div>
+  );
+}
+
+/* ---------------- root ---------------- */
+function App() {
+  const [wins, setWins] = useState([]);
+  const zRef = useRef(20);
+  const [showHint, setShowHint] = useState(true);
+  const [cursor, setCursor] = useState({ x: 0, y: 0, vis: false });
+
+  useEffect(() => {
+    const mv = (e) => setCursor({ x: e.clientX, y: e.clientY, vis: true });
+    window.addEventListener("mousemove", mv);
+    return () => window.removeEventListener("mousemove", mv);
+  }, []);
+
+  const open = useCallback((key) => {
+    setShowHint(false);
+    zRef.current += 1;
+    setWins(prev => {
+      const existing = prev.find(w => w.key === key);
+      if (existing) return prev.map(w => w.key === key ? { ...w, z: zRef.current } : w);
+
+      let w;
+      const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+      const jitter = (prev.length % 5) * 26;
+      if (key === "about") {
+        w = { key, titleLabel: "About Me", width: 440, height: 470,
+              content: <AboutBody /> };
+      } else if (key === "notes") {
+        w = { key, titleLabel: "Notes", width: 620, height: 460,
+              content: <NotesBody /> };
+      } else {
+        const p = PROJECTS.find(pp => pp.id === key);
+        w = { key, titleLabel: p.title, width: 560, height: 600,
+              content: <ProjectBody p={p} /> };
+      }
+      w.x = Math.max(20, cx - w.width / 2 + jitter - 40);
+      w.y = Math.max(20, cy - w.height / 2 + jitter - 30);
+      w.z = zRef.current;
+      return [...prev, w];
+    });
+  }, []);
+
+  const close = useCallback((key) => {
+    setWins(prev => prev.filter(w => w.key !== key));
+  }, []);
+
+  const focus = useCallback((key) => {
+    zRef.current += 1;
+    const z = zRef.current;
+    setWins(prev => prev.map(w => w.key === key ? { ...w, z } : w));
+  }, []);
+
+  return (
+    <div className="desktop">
+      <Wallpaper />
+      <CalendarWidget />
+      <WeatherWidget />
+      {PROJECTS.map(p => <DesktopIcon key={p.id} project={p} onOpen={open} />)}
+      {wins.map(w => (
+        <Win key={w.key} w={w} onClose={() => close(w.key)} onFocus={() => focus(w.key)} />
+      ))}
+      {showHint && cursor.vis && (
+        <div className="cursor-hint" style={{ left: cursor.x, top: cursor.y }}>
+          Click the files to view the contents
+        </div>
+      )}
+      <Dock onOpen={open} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
